@@ -2,28 +2,28 @@ package json
 
 import (
 	"encoding/json"
-	"log"
 	"os"
 	"strings"
 
 	sjson "github.com/bitly/go-simplejson"
-	"github.com/chuqingq/go-util"
 )
 
-// Json comm使用的消息
+// Json Json
 type Json struct {
 	sjson.Json
 }
 
+// New new a Json
 func New() *Json {
 	return &Json{}
 }
 
-// Set 支持v是string、bool、int、map[string]interface{}、[]interface{}
+// Set path是"key1.key2.key3"的形式，v支持string、bool、int、map[string]interface{}、[]interface{}
 func (m *Json) Set(path string, v interface{}) {
 	m.SetPath(strings.Split(path, "."), v)
 }
 
+// Get 按path获取Json中的内容。path是"key1.key2.key3"的形式
 func (m *Json) Get(path string) *Json {
 	if path == "" {
 		return m
@@ -31,17 +31,11 @@ func (m *Json) Get(path string) *Json {
 	return &Json{*m.GetPath(strings.Split(path, ".")...)}
 }
 
-func (m *Json) String(path string, def ...string) string {
-	return m.Get(path).MustString(def...)
-}
-
-func (m *Json) Bool(path string, def ...bool) bool {
-	return m.Get(path).MustBool(def...)
-}
-
-func (m *Json) Int(path string, def ...int) int {
-	return m.Get(path).MustInt(def...)
-}
+// func (j *Json) MustString(def...string)
+// func (j *Json) MustBool(def...bool)
+// func (j *Json) MustInt(def...int)
+// func (j *Json) MustInt64(def...int64)
+// func (j *Json) MustFloat64(def...float64)
 
 func (m *Json) Array() []Json {
 	arr, err := m.Json.Array()
@@ -67,10 +61,7 @@ func (m *Json) Unmarshal(v interface{}) error {
 
 // ToBytes Message转成[]byte
 func (m *Json) ToBytes() []byte {
-	b, err := m.EncodePretty()
-	if err != nil {
-		log.Printf("messagep[%v].EncodePretty() error: %v", m, err)
-	}
+	b, _ := m.EncodePretty()
 	return b
 }
 
@@ -96,8 +87,8 @@ func FromString(s string) (*Json, error) {
 
 // FromStruct 类似json.Marshal()
 func FromStruct(v interface{}) *Json {
-	str := util.ToJson(v)
-	m, _ := FromString(str)
+	b, _ := json.Marshal(v)
+	m, _ := FromBytes(b)
 	return m
 }
 
@@ -120,19 +111,3 @@ func (m *Json) ToFile(filepath string) error {
 	const defaultFileMode = 0644
 	return os.WriteFile(filepath, b, defaultFileMode)
 }
-
-/*
-TODO
-func New() *Message
-func NewMessage(v interface{}) *Message
-
-func (m *Message) Set(path string, val interface{})
-func (m *Message) Get(path string) *Message
-
-func (m *Message) MessageArray() ([]Message, error)
-func (m *Message) MustMessageArray(msg ...[]Message) []Message
-
-func MessageFromFile(filepath string) (*Message, error)
-func (m *Message) ToFile(filepath string) error
-
-*/
