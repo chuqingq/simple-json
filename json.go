@@ -53,24 +53,7 @@ func (m *Json) Map(path string, def ...map[string]interface{}) map[string]interf
 	return m.Get(path).MustMap(def...)
 }
 
-// Unmarshal 把m解析到v上。类似json.Unmarshal()
-func (m *Json) Unmarshal(v interface{}) error {
-	b := m.ToBytes()
-	return json.Unmarshal(b, v)
-}
-
-// ToBytes Message转成[]byte
-func (m *Json) ToBytes() []byte {
-	b, _ := m.EncodePretty()
-	return b
-}
-
-// ToString Message转成string
-func (m *Json) ToString() string {
-	return string(m.ToBytes())
-}
-
-// FromBytes 字节数组转成Message
+// FromBytes parse []byte to Json
 func FromBytes(data []byte) (*Json, error) {
 	m, err := sjson.NewJson(data)
 	if err != nil {
@@ -79,20 +62,37 @@ func FromBytes(data []byte) (*Json, error) {
 	return &Json{*m}, nil
 }
 
-// FromString 字符串转成Message
+// ToBytes Json to []byte
+func (m *Json) ToBytes() []byte {
+	b, _ := m.EncodePretty()
+	return b
+}
+
+// FromString parse string to Json
 func FromString(s string) (*Json, error) {
 	m, err := FromBytes([]byte(s))
 	return m, err
 }
 
-// FromStruct 类似json.Marshal()
+// ToString Json to string
+func (m *Json) ToString() string {
+	return string(m.ToBytes())
+}
+
+// FromStruct parse struct to Json, like json.Marshal()
 func FromStruct(v interface{}) *Json {
 	b, _ := json.Marshal(v)
 	m, _ := FromBytes(b)
 	return m
 }
 
-// FromFile 从filepath读取Message
+// ToStruct parse Json to struct, like json.Unmarshal()
+func (m *Json) ToStruct(v interface{}) error {
+	b := m.ToBytes()
+	return json.Unmarshal(b, v)
+}
+
+// FromFile parse json from filepath
 func FromFile(filepath string) (*Json, error) {
 	b, err := os.ReadFile(filepath)
 	if err != nil {
@@ -102,7 +102,7 @@ func FromFile(filepath string) (*Json, error) {
 	return m, err
 }
 
-// ToFile 把Message保存到filepath
+// ToFile save json to filepath
 func (m *Json) ToFile(filepath string) error {
 	b, err := m.EncodePretty()
 	if err != nil {
